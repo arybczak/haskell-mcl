@@ -10,7 +10,7 @@ import Data.Group
 import Data.Maybe
 
 import MCL.Curves.Fp254BNb
-import MCL.Utils
+import MCL.Internal.Utils
 
 main :: IO ()
 main = defaultMain

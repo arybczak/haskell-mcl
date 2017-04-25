@@ -5,7 +5,7 @@ import MCL.Curves.Fp254BNb.Fp12
 import MCL.Curves.Fp254BNb.G1
 import MCL.Curves.Fp254BNb.G2
 import MCL.Curves.Fp254BNb.GT
-import MCL.Utils
+import MCL.Internal.Utils
 
 pairing :: G1 -> G2 -> GT
 pairing fp fq = unsafeOp0 . withG1 fp $ \p ->

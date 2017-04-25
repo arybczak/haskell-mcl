@@ -108,6 +108,11 @@ int hs_mcl_fp254bnb_fr_is_zero(const Fr *a)
 	return field_impl::is_zero(a);
 }
 
+int hs_mcl_fp254bnb_fr_sqrt(const Fr *a, Fr *result)
+{
+	return field_impl::sqrt(a, result);
+}
+
 ////////////////////////////////////////////////////////////
 // Fp
 

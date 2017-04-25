@@ -2,7 +2,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE UnliftedFFITypes #-}
-module MCL.Utils
+module MCL.Internal.Utils
   ( Compressed(..)
   , cintToBool
   , boolToCInt
@@ -68,7 +68,7 @@ getBytesFx n = foldl' assemble 0 <$> collect [] (n `div` 8)
 
 {-# INLINABLE putCurvePoint #-}
 putCurvePoint
-  :: (Binary x, Binary y)
+  :: Binary x
   => (g -> Maybe (x, y))
   -> (y -> Put)
   -> g

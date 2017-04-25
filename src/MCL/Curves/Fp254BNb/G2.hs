@@ -32,7 +32,7 @@ import GHC.Integer.GMP.Internals
 import MCL.Curves.Fp254BNb.Fp
 import MCL.Curves.Fp254BNb.Fp2
 import MCL.Curves.Fp254BNb.Fr
-import MCL.Utils
+import MCL.Internal.Utils
 
 type CC_G2 = ByteArray#
 type MC_G2 = MutableByteArray# RealWorld

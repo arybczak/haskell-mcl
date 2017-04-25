@@ -1,4 +1,3 @@
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE UnliftedFFITypes #-}
 module MCL.Curves.Fp254BNb.Fr
@@ -8,30 +7,29 @@ module MCL.Curves.Fp254BNb.Fr
   , fromFr
   , fr_modulus
   , fr_isZero
+  , fr_squareRoot
   -- * Internal
   , CC_Fr
   , MC_Fr
   , withFr
-  , newFr
-  , newFr_
   ) where
 
 import Control.DeepSeq
 import Data.Binary
 import Data.Primitive.ByteArray
-import Data.Ratio
 import Foreign.C.Types
 import GHC.Exts
 import GHC.Integer.GMP.Internals
 import qualified Data.ByteString as BS
-import qualified Data.ByteString.Unsafe as BS
 
-import MCL.Utils
+import MCL.Internal.Utils
+import qualified MCL.Internal.Field as I
+import qualified MCL.Internal.Prim as I
 
 type CC_Fr = ByteArray#
 type MC_Fr = MutableByteArray# RealWorld
 
-data Fr = Fr CC_Fr
+data Fr = Fr { unFr :: CC_Fr }
 
 instance Binary Fr where
   put = putBytesFx 32 . fromFr
@@ -41,98 +39,82 @@ instance NFData Fr where
   rnf = (`seq` ())
 
 instance Num Fr where
-  (+)         = addFr
-  (-)         = subtractFr
-  (*)         = multiplyFr
-  negate      = negateFr
-  abs         = id
-  signum      = \case 0 -> 0; _ -> 1
+  (+)         = I.addFp
+  (-)         = I.subtractFp
+  (*)         = I.multiplyFp
+  negate      = I.negateFp
+  abs         = I.absFp
+  signum      = I.signumFp
   fromInteger = mkFr
 
 instance Fractional Fr where
-  recip          = recipFr
-  fromRational r = fromInteger (numerator r) / fromInteger (denominator r)
+  recip        = I.recipFp
+  fromRational = I.fromRationalFp
 
 instance Eq Fr where
-  (==) = eqFr
+  (==) = I.eqFp
 
 instance Show Fr where
-  showsPrec p = showsPrec p . fromFr
+  showsPrec = I.showsPrecFp
 
-{-# INLINABLE mkFr #-}
+{-# INLINE mkFr #-}
 mkFr :: Integer -> Fr
-mkFr n = unsafeOp0 . newFr_ $ case n `mod` fr_modulus of
-  Jp# x@(BN# ba) -> c_mcl_fp254bnb_fr_from_integer ba (sizeofBigNat# x)
-  Jn# _          -> error "fromIntegerFr: n mod r is negative"
-  S# k           -> c_mcl_fp254bnb_fr_from_hsint k
+mkFr = I.mkFp
 
-{-# INLINABLE hashToFr #-}
+{-# INLINE hashToFr #-}
 hashToFr :: BS.ByteString -> Fr
-hashToFr bs = unsafeOp0 . BS.unsafeUseAsCStringLen bs $ \(ptr, len) ->
-  newFr_ (c_mcl_fp254bnb_fr_hash_to ptr $ fromIntegral len)
+hashToFr = I.hashToFp
 
-{-# INLINABLE fromFr #-}
+{-# INLINE fromFr #-}
 fromFr :: Fr -> Integer
-fromFr = unsafeOp1 withFr (importInteger frLimbs) c_mcl_fp254bnb_fr_to_gmp_integer
+fromFr = I.fromFp
 
-{-# NOINLINE fr_modulus #-}
 -- | Modulus of 'Fr'.
+{-# NOINLINE fr_modulus #-}
 fr_modulus :: Integer
-fr_modulus = unsafeOp0 (importInteger frLimbs c_mcl_fp254bnb_fr_modulus)
+fr_modulus = I.modulus (proxy# :: Proxy# Fr)
 
-{-# INLINABLE fr_isZero #-}
+{-# INLINE fr_isZero #-}
 fr_isZero :: Fr -> Bool
-fr_isZero = unsafeOp1 withFr (fmap cintToBool) c_mcl_fp254bnb_fr_is_zero
+fr_isZero = I.isZero
 
-----------------------------------------
--- Internal
-
-{-# INLINABLE addFr #-}
-addFr :: Fr -> Fr -> Fr
-addFr = unsafeOp2 withFr newFr_ c_mcl_fp254bnb_fr_add
-
-{-# INLINABLE subtractFr #-}
-subtractFr :: Fr -> Fr -> Fr
-subtractFr = unsafeOp2 withFr newFr_ c_mcl_fp254bnb_fr_subtract
-
-{-# INLINABLE multiplyFr #-}
-multiplyFr :: Fr -> Fr -> Fr
-multiplyFr = unsafeOp2 withFr newFr_ c_mcl_fp254bnb_fr_multiply
-
-{-# INLINABLE negateFr #-}
-negateFr :: Fr -> Fr
-negateFr = unsafeOp1 withFr newFr_ c_mcl_fp254bnb_fr_negate
-
-{-# INLINABLE recipFr #-}
-recipFr :: Fr -> Fr
-recipFr = unsafeOp1 withFr newFr_ c_mcl_fp254bnb_fr_invert
-
-{-# INLINABLE eqFr #-}
-eqFr :: Fr -> Fr -> Bool
-eqFr = unsafeOp2 withFr (fmap cintToBool) c_mcl_fp254bnb_fr_eq
+{-# INLINE fr_squareRoot #-}
+fr_squareRoot :: Fr -> Maybe Fr
+fr_squareRoot = I.squareRoot
 
 ----------------------------------------
 -- C utils
 
-{-# INLINEABLE withFr #-}
+{-# INLINE withFr #-}
 withFr :: Fr -> (CC_Fr -> IO r) -> IO r
-withFr (Fr ba) k = k ba
-
-{-# INLINEABLE newFr #-}
-newFr :: (r -> ByteArray# -> fp) -> (MC_Fr -> IO r) -> IO fp
-newFr = withByteArray1 frSize
-
-{-# INLINEABLE newFr_ #-}
-newFr_ :: (MC_Fr -> IO ()) -> IO Fr
-newFr_ = newFr (const Fr)
+withFr = I.withPrim
 
 ----------------------------------------
 
-frLimbs :: Int
-frLimbs = fromIntegral c_mcl_fp254bnb_fr_limbs
+instance I.Prim Fr where
+  prim_size _ = fromIntegral c_mcl_fp254bnb_fr_size
+  prim_wrap   = Fr
+  prim_unwrap = unFr
 
-frSize :: Int
-frSize = fromIntegral c_mcl_fp254bnb_fr_size
+instance I.BaseField Fr where
+  c_limbs        _ = fromIntegral c_mcl_fp254bnb_fr_limbs
+  c_modulus      _ = c_mcl_fp254bnb_fr_modulus
+  c_hash_to      _ = c_mcl_fp254bnb_fr_hash_to
+  c_from_integer _ = c_mcl_fp254bnb_fr_from_integer
+  c_from_hsint   _ = c_mcl_fp254bnb_fr_from_hsint
+  c_to_integer   _ = c_mcl_fp254bnb_fr_to_gmp_integer
+
+instance I.HasArith Fr where
+  c_add      _ = c_mcl_fp254bnb_fr_add
+  c_subtract _ = c_mcl_fp254bnb_fr_subtract
+  c_multiply _ = c_mcl_fp254bnb_fr_multiply
+  c_negate   _ = c_mcl_fp254bnb_fr_negate
+  c_invert   _ = c_mcl_fp254bnb_fr_invert
+  c_eq       _ = c_mcl_fp254bnb_fr_eq
+  c_is_zero  _ = c_mcl_fp254bnb_fr_is_zero
+
+instance I.HasSqrt Fr where
+  c_sqrt _ = c_mcl_fp254bnb_fr_sqrt
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_fr_size"
   c_mcl_fp254bnb_fr_size :: CInt
@@ -141,7 +123,7 @@ foreign import ccall unsafe "hs_mcl_fp254bnb_fr_limbs"
   c_mcl_fp254bnb_fr_limbs :: CInt
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_fr_modulus"
-  c_mcl_fp254bnb_fr_modulus :: MutableByteArray# RealWorld -> CSize -> IO ()
+  c_mcl_fp254bnb_fr_modulus :: I.MC Integer -> CSize -> IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_fr_hash_to"
   c_mcl_fp254bnb_fr_hash_to :: Ptr CChar -> CSize -> MC_Fr -> IO ()
@@ -159,7 +141,7 @@ foreign import ccall unsafe "hs_mcl_fp254bnb_fr_negate"
   c_mcl_fp254bnb_fr_negate :: CC_Fr -> MC_Fr -> IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_fr_from_integer"
-  c_mcl_fp254bnb_fr_from_integer :: ByteArray# -> GmpSize# -> MC_Fr -> IO ()
+  c_mcl_fp254bnb_fr_from_integer :: I.CC Integer -> GmpSize# -> MC_Fr -> IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_fr_from_hsint"
   c_mcl_fp254bnb_fr_from_hsint :: Int# -> MC_Fr -> IO ()
@@ -171,8 +153,10 @@ foreign import ccall unsafe "hs_mcl_fp254bnb_fr_eq"
   c_mcl_fp254bnb_fr_eq :: CC_Fr -> CC_Fr -> IO CInt
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_fr_to_gmp_integer"
-  c_mcl_fp254bnb_fr_to_gmp_integer :: CC_Fr -> MutableByteArray# RealWorld -> CSize
-                                   -> IO ()
+  c_mcl_fp254bnb_fr_to_gmp_integer :: CC_Fr -> I.MC Integer -> CSize -> IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_fr_is_zero"
   c_mcl_fp254bnb_fr_is_zero :: CC_Fr -> IO CInt
+
+foreign import ccall unsafe "hs_mcl_fp254bnb_fr_sqrt"
+  c_mcl_fp254bnb_fr_sqrt :: CC_Fr -> MC_Fr -> IO CInt
