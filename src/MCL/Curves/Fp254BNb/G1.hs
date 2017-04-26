@@ -1,6 +1,6 @@
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MagicHash #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE UnliftedFFITypes #-}
 module MCL.Curves.Fp254BNb.G1
   ( G1
@@ -17,13 +17,11 @@ module MCL.Curves.Fp254BNb.G1
   , CC_G1
   , MC_G1
   , withG1
-  , newG1
   ) where
 
 import Control.DeepSeq
 import Data.Binary
 import Data.Bits
-import Data.Functor.Identity
 import Data.Group
 import Data.Primitive.ByteArray
 import Foreign.C.Types
@@ -33,11 +31,13 @@ import GHC.Integer.GMP.Internals
 import MCL.Curves.Fp254BNb.Fp
 import MCL.Curves.Fp254BNb.Fr
 import MCL.Internal.Utils
+import qualified MCL.Internal.Group as I
+import qualified MCL.Internal.Prim as I
 
 type CC_G1 = ByteArray#
 type MC_G1 = MutableByteArray# RealWorld
 
-data G1 = G1 CC_G1
+data G1 = G1 { unG1 :: CC_G1 }
 
 instance Binary G1 where
   put = putCurvePoint g1_affineCoords put
@@ -55,106 +55,83 @@ instance NFData G1 where
   rnf = (`seq` ())
 
 instance Eq G1 where
-  (==) = eqG1
+  (==) = I.eqG
 
 instance Show G1 where
-  showsPrec p = maybe ("0" ++) (showsPrec p) . g1_affineCoords
+  showsPrec = I.showsPrecG
 
 instance Monoid G1 where
-  mempty  = g1_zero
-  mappend = plusG1
+  mempty  = I.zero
+  mappend = I.plusG
 
 instance Group G1 where
-  invert = invertG1
-  pow    = flip scalarMul
+  invert = I.invertG
+  pow    = flip I.scalarMul
 
 instance Abelian G1
 
-{-# INLINABLE mkG1 #-}
+{-# INLINE mkG1 #-}
 mkG1 :: Fp -> Fp -> Maybe G1
-mkG1 = unsafeOp2 withFp maybeNewG1 c_mcl_fp254bnb_g1_construct
+mkG1 = I.mkG
 
-{-# INLINABLE mapToG1_ #-}
+{-# INLINE mapToG1_ #-}
 mapToG1_ :: Fp -> Maybe G1
-mapToG1_ = unsafeOp1 withFp maybeNewG1 c_mcl_fp254bnb_g1_map_to
+mapToG1_ = I.mapToG_
 
-{-# INLINABLE mapToG1 #-}
+{-# INLINE mapToG1 #-}
 mapToG1 :: (Fp -> Fp) -> Fp -> G1
-mapToG1 f = runIdentity . mapToG1M (Identity . f)
+mapToG1 = I.mapToG
 
-{-# INLINABLE mapToG1M #-}
+{-# INLINE mapToG1M #-}
 mapToG1M :: Monad m => (Fp -> m Fp) -> Fp -> m G1
-mapToG1M f a = case mapToG1_ a of
-  Just p  -> return p
-  Nothing -> f a >>= mapToG1M f
+mapToG1M = I.mapToGM
 
 {-# NOINLINE g1_zero #-}
 g1_zero :: G1
-g1_zero = unsafeOp0 $ newG1_ c_mcl_fp254bnb_g1_zero
+g1_zero = I.zero
 
-{-# INLINABLE g1_isZero #-}
+{-# INLINE g1_isZero #-}
 g1_isZero :: G1 -> Bool
-g1_isZero = unsafeOp1 withG1 (fmap cintToBool) c_mcl_fp254bnb_g1_is_zero
+g1_isZero = I.isZero
 
-{-# INLINABLE g1_affineCoords #-}
+{-# INLINE g1_affineCoords #-}
 g1_affineCoords :: G1 -> Maybe (Fp, Fp)
-g1_affineCoords fp
-  | g1_isZero fp = Nothing
-  | otherwise    = Just (unsafeOp1 withG1 new2Fp c_mcl_fp254bnb_g1_affine_coords fp)
+g1_affineCoords = I.affineCoords
 
-{-# INLINABLE g1_getYfromX #-}
+{-# INLINE g1_getYfromX #-}
 g1_getYfromX :: Bool -> Fp -> Maybe Fp
-g1_getYfromX = unsafeOp1 withFp maybeNewFp . c_mcl_fp254bnb_g1_y_from_x . boolToCInt
+g1_getYfromX = I.getYfromX (proxy# :: Proxy# G1)
 
-{-# INLINABLE g1_powFr #-}
+{-# INLINE g1_powFr #-}
 g1_powFr :: G1 -> Fr -> G1
-g1_powFr fp fr = unsafeOp0 . withG1 fp $ \p ->
-                             withFr fr $ \r ->
-  newG1_ $ c_mcl_fp254bnb_g1_scalar_mul_native 1 r p
-
-----------------------------------------
--- Internal
-
-{-# INLINABLE eqG1 #-}
-eqG1 :: G1 -> G1 -> Bool
-eqG1 = unsafeOp2 withG1 (fmap cintToBool) c_mcl_fp254bnb_g1_eq
-
-{-# INLINABLE plusG1 #-}
-plusG1 :: G1 -> G1 -> G1
-plusG1 = unsafeOp2 withG1 newG1_ c_mcl_fp254bnb_g1_add
-
-{-# INLINABLE invertG1 #-}
-invertG1 :: G1 -> G1
-invertG1 = unsafeOp1 withG1 newG1_ c_mcl_fp254bnb_g1_invert
-
-{-# INLINABLE scalarMul #-}
-scalarMul :: Integral a => a -> G1 -> G1
-scalarMul n fp = unsafeOp0 . withG1 fp $ \p -> newG1_ $ case toInteger n of
-  Jp# x@(BN# ba) -> c_mcl_fp254bnb_g1_scalar_mul       1 ba (sizeofBigNat# x) 0 p
-  Jn# x@(BN# ba) -> c_mcl_fp254bnb_g1_scalar_mul       1 ba (sizeofBigNat# x) 1 p
-  S# k           -> c_mcl_fp254bnb_g1_scalar_mul_small 1 k p
+g1_powFr = I.powFr
 
 ----------------------------------------
 
-{-# INLINABLE withG1 #-}
+{-# INLINE withG1 #-}
 withG1 :: G1 -> (CC_G1 -> IO r) -> IO r
-withG1 (G1 ba) k = k ba
+withG1 = I.withPrim
 
-{-# INLINABLE newG1 #-}
-newG1 :: (r -> ByteArray# -> g1) -> (MC_G1 -> IO r) -> IO g1
-newG1 = withByteArray1 g1Size
-  where
-    g1Size = fromIntegral c_mcl_fp254bnb_g1_size
+----------------------------------------
 
-{-# INLINABLE newG1_ #-}
-newG1_ :: (MC_G1 -> IO ()) -> IO G1
-newG1_ = newG1 (const G1)
+instance I.Prim G1 where
+  prim_size _ = fromIntegral c_mcl_fp254bnb_g1_size
+  prim_wrap   = G1
+  prim_unwrap = unG1
 
-{-# INLINABLE maybeNewG1 #-}
-maybeNewG1 :: (MC_G1 -> IO CInt) -> IO (Maybe G1)
-maybeNewG1 = newG1 $ \success ba -> if cintToBool success
-                                    then Just (G1 ba)
-                                    else Nothing
+instance I.CurveGroup Fp G1 where
+  c_zero              _ = c_mcl_fp254bnb_g1_zero
+  c_construct         _ = c_mcl_fp254bnb_g1_construct
+  c_map_to            _ = c_mcl_fp254bnb_g1_map_to
+  c_add               _ = c_mcl_fp254bnb_g1_add
+  c_invert            _ = c_mcl_fp254bnb_g1_invert
+  c_scalar_mul_native _ = c_mcl_fp254bnb_g1_scalar_mul_native
+  c_scalar_mul_bignat _ = c_mcl_fp254bnb_g1_scalar_mul
+  c_scalar_mul_hsint  _ = c_mcl_fp254bnb_g1_scalar_mul_small
+  c_eq                _ = c_mcl_fp254bnb_g1_eq
+  c_is_zero           _ = c_mcl_fp254bnb_g1_is_zero
+  c_affine_coords     _ = c_mcl_fp254bnb_g1_affine_coords
+  c_y_from_x          _ = c_mcl_fp254bnb_g1_y_from_x
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_g1_size"
   c_mcl_fp254bnb_g1_size :: CInt
@@ -178,7 +155,7 @@ foreign import ccall unsafe "hs_mcl_fp254bnb_g1_scalar_mul_native"
   c_mcl_fp254bnb_g1_scalar_mul_native :: CInt -> CC_Fr -> CC_G1 -> MC_G1 -> IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_g1_scalar_mul"
-  c_mcl_fp254bnb_g1_scalar_mul :: CInt -> ByteArray# -> GmpSize# -> CInt
+  c_mcl_fp254bnb_g1_scalar_mul :: CInt -> I.CC Integer -> GmpSize# -> CInt
                                -> CC_G1 -> MC_G1 -> IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_g1_scalar_mul_small"
@@ -191,7 +168,7 @@ foreign import ccall unsafe "hs_mcl_fp254bnb_g1_is_zero"
   c_mcl_fp254bnb_g1_is_zero :: CC_G1 -> IO CInt
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_g1_affine_coords"
-  c_mcl_fp254bnb_g1_affine_coords :: CC_G1 -> MC_Fp -> MC_Fp ->  IO ()
+  c_mcl_fp254bnb_g1_affine_coords :: CC_G1 -> MC_Fp -> MC_Fp -> IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_g1_y_from_x"
   c_mcl_fp254bnb_g1_y_from_x :: CInt -> CC_Fp -> MC_Fp -> IO CInt

@@ -25,6 +25,7 @@ library
                        MCL.Curves.Fp254BNb.GT
                        MCL.Curves.Fp254BNb.Pairing
                        MCL.Internal.Field
+                       MCL.Internal.Group
                        MCL.Internal.Prim
                        MCL.Internal.Utils
 
