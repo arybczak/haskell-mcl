@@ -23,30 +23,28 @@ class Prim fp => BaseField fp where
 
 {-# INLINABLE mkFp #-}
 mkFp :: forall fp. (BaseField fp, Typeable fp) => Integer -> fp
-mkFp n = unsafeOp0 . newPrim_ $ case n `mod` (modulus p) of
-  Jp# x@(BN# ba) -> c_from_integer p ba (sizeofBigNat# x)
-  Jn# _          -> error $ "mkFp (" ++ fp ++ "): n mod p is negative"
-  S# k           -> c_from_hsint p k
+mkFp n = unsafeOp0_ $ case n `mod` (modulus fp) of
+  Jp# x@(BN# ba) -> c_from_integer fp ba (sizeofBigNat# x)
+  Jn# _          -> error $ "mkFp (" ++ fpRep ++ "): n mod p is negative"
+  S# k           -> c_from_hsint fp k
   where
-    p = proxy# :: Proxy# fp
-    fp = show $ typeRep (Proxy :: Proxy fp)
+    fp    = proxy# :: Proxy# fp
+    fpRep = show $ typeRep (Proxy :: Proxy fp)
 
 {-# INLINABLE hashToFp #-}
 hashToFp :: forall fp. BaseField fp => BS.ByteString -> fp
 hashToFp bs = unsafeOp0 . BS.unsafeUseAsCStringLen bs $ \(ptr, len) ->
-  newPrim_ (c_hash_to p ptr $ fromIntegral len)
-  where
-    p = proxy# :: Proxy# fp
+  newPrim_ $ c_hash_to (proxy# :: Proxy# fp) ptr (fromIntegral len)
 
 {-# INLINABLE fromFp #-}
-fromFp :: forall fp. BaseField fp =>  fp -> Integer
-fromFp = unsafeOp1 withPrim (importInteger (c_limbs p)) (c_to_integer p)
+fromFp :: forall fp. BaseField fp => fp -> Integer
+fromFp = unsafeOp1 (importInteger (c_limbs fp)) (c_to_integer fp)
   where
-    p = proxy# :: Proxy# fp
+    fp = proxy# :: Proxy# fp
 
 {-# INLINABLE modulus #-}
 modulus :: BaseField fp => Proxy# fp -> Integer
-modulus p = unsafeOp0 $ importInteger (c_limbs p) (c_modulus p)
+modulus fp = unsafeOp0 $ importInteger (c_limbs fp) (c_modulus fp)
 
 {-# INLINABLE showsPrecFp #-}
 showsPrecFp :: BaseField fp => Int -> fp -> ShowS
@@ -65,33 +63,23 @@ class Prim fp => HasArith fp where
 
 {-# INLINABLE isZero #-}
 isZero :: forall fp. HasArith fp => fp -> Bool
-isZero = unsafeOp1 withPrim (fmap cintToBool) (c_is_zero p)
-  where
-    p = proxy# :: Proxy# fp
+isZero = unsafeOp1 (fmap cintToBool) $ c_is_zero (proxy# :: Proxy# fp)
 
 {-# INLINABLE addFp #-}
 addFp :: forall fp. HasArith fp => fp -> fp -> fp
-addFp = unsafeOp2 withPrim newPrim_ (c_add p)
-  where
-    p = proxy# :: Proxy# fp
+addFp = unsafeOp2_ $ c_add (proxy# :: Proxy# fp)
 
 {-# INLINABLE subtractFp #-}
 subtractFp :: forall fp. HasArith fp => fp -> fp -> fp
-subtractFp = unsafeOp2 withPrim newPrim_ (c_subtract p)
-  where
-    p = proxy# :: Proxy# fp
+subtractFp = unsafeOp2_ $ c_subtract (proxy# :: Proxy# fp)
 
 {-# INLINABLE multiplyFp #-}
 multiplyFp :: forall fp. HasArith fp => fp -> fp -> fp
-multiplyFp = unsafeOp2 withPrim newPrim_ (c_multiply p)
-  where
-    p = proxy# :: Proxy# fp
+multiplyFp = unsafeOp2_ $ c_multiply (proxy# :: Proxy# fp)
 
 {-# INLINABLE negateFp #-}
 negateFp :: forall fp. HasArith fp => fp -> fp
-negateFp = unsafeOp1 withPrim newPrim_ (c_negate p)
-  where
-    p = proxy# :: Proxy# fp
+negateFp = unsafeOp1_ $ c_negate (proxy# :: Proxy# fp)
 
 {-# INLINABLE absFp #-}
 absFp :: fp -> fp
@@ -103,9 +91,7 @@ signumFp fp = if isZero fp then fp else 1
 
 {-# INLINABLE recipFp #-}
 recipFp :: forall fp. HasArith fp => fp -> fp
-recipFp = unsafeOp1 withPrim newPrim_ (c_invert p)
-  where
-    p = proxy# :: Proxy# fp
+recipFp = unsafeOp1_ $ c_invert (proxy# :: Proxy# fp)
 
 {-# INLINABLE fromRationalFp #-}
 fromRationalFp :: Fractional fp => Rational -> fp
@@ -113,9 +99,7 @@ fromRationalFp r = fromIntegral (numerator r) / fromIntegral (denominator r)
 
 {-# INLINABLE eqFp #-}
 eqFp :: forall fp. HasArith fp => fp -> fp -> Bool
-eqFp = unsafeOp2 withPrim (fmap cintToBool) (c_eq p)
-  where
-    p = proxy# :: Proxy# fp
+eqFp = unsafeOp2 (fmap cintToBool) $ c_eq (proxy# :: Proxy# fp)
 
 ----------------------------------------
 
@@ -124,6 +108,4 @@ class HasArith fp => HasSqrt fp where
 
 {-# INLINABLE squareRoot #-}
 squareRoot :: forall fp. HasSqrt fp => fp -> Maybe fp
-squareRoot = unsafeOp1 withPrim maybeNewPrim (c_sqrt p)
-  where
-    p = proxy# :: Proxy# fp
+squareRoot = unsafeOp1 maybeNewPrim $ c_sqrt (proxy# :: Proxy# fp)

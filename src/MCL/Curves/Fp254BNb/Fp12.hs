@@ -18,7 +18,6 @@ import Data.Binary
 import Foreign.C.Types
 
 import MCL.Curves.Fp254BNb.Fp2
-import MCL.Internal.Utils
 import qualified MCL.Internal.Field as I
 import qualified MCL.Internal.Prim as I
 
@@ -58,42 +57,37 @@ beta = mkFp12 0 0 0 1 0 0
 
 {-# INLINABLE mkFp12 #-}
 mkFp12 :: Fp2 -> Fp2 -> Fp2 -> Fp2 -> Fp2 -> Fp2 -> Fp12
-mkFp12 = unsafeOp6 I.withPrim I.newPrim_ c_mcl_fp254bnb_fp12_from_base
+mkFp12 = I.unsafeOp6_ c_mcl_fp254bnb_fp12_from_base
 
 {-# INLINABLE fp12_c0 #-}
 fp12_c0 :: Fp12 -> Fp2
-fp12_c0 = fp12_cX c_mcl_fp254bnb_fp12_c0
+fp12_c0 = I.unsafeOp1_ c_mcl_fp254bnb_fp12_c0
 
 {-# INLINABLE fp12_c1 #-}
 fp12_c1 :: Fp12 -> Fp2
-fp12_c1 = fp12_cX c_mcl_fp254bnb_fp12_c1
+fp12_c1 = I.unsafeOp1_ c_mcl_fp254bnb_fp12_c1
 
 {-# INLINABLE fp12_c2 #-}
 fp12_c2 :: Fp12 -> Fp2
-fp12_c2 = fp12_cX c_mcl_fp254bnb_fp12_c2
+fp12_c2 = I.unsafeOp1_ c_mcl_fp254bnb_fp12_c2
 
 {-# INLINABLE fp12_c3 #-}
 fp12_c3 :: Fp12 -> Fp2
-fp12_c3 = fp12_cX c_mcl_fp254bnb_fp12_c3
+fp12_c3 = I.unsafeOp1_ c_mcl_fp254bnb_fp12_c3
 
 {-# INLINABLE fp12_c4 #-}
 fp12_c4 :: Fp12 -> Fp2
-fp12_c4 = fp12_cX c_mcl_fp254bnb_fp12_c4
+fp12_c4 = I.unsafeOp1_ c_mcl_fp254bnb_fp12_c4
 
 {-# INLINABLE fp12_c5 #-}
 fp12_c5 :: Fp12 -> Fp2
-fp12_c5 = fp12_cX c_mcl_fp254bnb_fp12_c5
+fp12_c5 = I.unsafeOp1_ c_mcl_fp254bnb_fp12_c5
 
 {-# INLINE fp12_isZero #-}
 fp12_isZero :: Fp12 -> Bool
 fp12_isZero = I.isZero
 
 ----------------------------------------
--- C utils
-
-{-# INLINE fp12_cX #-}
-fp12_cX :: (I.CC Fp12 -> I.MC Fp2 -> IO ()) -> Fp12 -> Fp2
-fp12_cX = unsafeOp1 I.withPrim I.newPrim_
 
 instance I.Prim Fp12 where
   prim_size _ = fromIntegral c_mcl_fp254bnb_fp12_size

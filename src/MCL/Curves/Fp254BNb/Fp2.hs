@@ -15,7 +15,6 @@ import Data.Binary
 import Foreign.C.Types
 
 import MCL.Curves.Fp254BNb.Fp
-import MCL.Internal.Utils
 import qualified MCL.Internal.Field as I
 import qualified MCL.Internal.Prim as I
 
@@ -66,15 +65,15 @@ alpha = mkFp2 0 1
 
 {-# INLINABLE mkFp2 #-}
 mkFp2 :: Fp -> Fp -> Fp2
-mkFp2 = unsafeOp2 I.withPrim I.newPrim_ c_mcl_fp254bnb_fp2_from_base
+mkFp2 = I.unsafeOp2_ c_mcl_fp254bnb_fp2_from_base
 
 {-# INLINABLE fp2_c0 #-}
 fp2_c0 :: Fp2 -> Fp
-fp2_c0 = fp2_cX c_mcl_fp254bnb_fp2_c0
+fp2_c0 = I.unsafeOp1_ c_mcl_fp254bnb_fp2_c0
 
 {-# INLINABLE fp2_c1 #-}
 fp2_c1 :: Fp2 -> Fp
-fp2_c1 = fp2_cX c_mcl_fp254bnb_fp2_c1
+fp2_c1 = I.unsafeOp1_ c_mcl_fp254bnb_fp2_c1
 
 {-# INLINE fp2_isZero #-}
 fp2_isZero :: Fp2 -> Bool
@@ -85,11 +84,6 @@ fp2_squareRoot :: Fp2 -> Maybe Fp2
 fp2_squareRoot = I.squareRoot
 
 ----------------------------------------
--- C utils
-
-{-# INLINE fp2_cX #-}
-fp2_cX :: (I.CC Fp2 -> I.MC Fp -> IO ()) -> Fp2 -> Fp
-fp2_cX = unsafeOp1 I.withPrim I.newPrim_
 
 instance I.Prim Fp2 where
   prim_size _ = fromIntegral c_mcl_fp254bnb_fp2_size

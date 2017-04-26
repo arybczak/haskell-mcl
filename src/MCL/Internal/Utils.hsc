@@ -12,10 +12,6 @@ module MCL.Internal.Utils
   , getCurvePoint
   , withByteArray1
   , withByteArray2
-  , unsafeOp0
-  , unsafeOp1
-  , unsafeOp2
-  , unsafeOp6
   , importInteger
   ) where
 
@@ -30,7 +26,6 @@ import Data.Typeable
 import Foreign.C.Types
 import GHC.Exts
 import GHC.Integer.GMP.Internals
-import System.IO.Unsafe
 
 #include <gmp.h>
 
@@ -124,40 +119,6 @@ withByteArray2 size k c_fun = do
   return (k uba, k ubb)
 
 ----------------------------------------
-
-{-# INLINABLE unsafeOp0 #-}
-unsafeOp0 :: IO r -> r
-unsafeOp0 = unsafeDupablePerformIO
-
-{-# INLINABLE unsafeOp1 #-}
-unsafeOp1
-  :: (t -> (ByteArray## -> IO r) -> IO r)
-  -> (s -> IO r)
-  -> (ByteArray## -> s)
-  -> (t -> r)
-unsafeOp1 with k c_fun fa =
-  unsafeOp0 . with fa $ \a -> k (c_fun a)
-
-{-# INLINABLE unsafeOp2 #-}
-unsafeOp2
-  :: (t -> (ByteArray## -> IO r) -> IO r)
-  -> (s -> IO r)
-  -> (ByteArray## -> ByteArray## -> s)
-  -> (t -> t -> r)
-unsafeOp2 with k c_fun fa fb =
-  unsafeOp0 . with fa $ \a -> with fb $ \b -> k (c_fun a b)
-
-{-# INLINABLE unsafeOp6 #-}
-unsafeOp6
-  :: (t -> (ByteArray## -> IO r) -> IO r)
-  -> (s -> IO r)
-  -> (ByteArray## -> ByteArray## -> ByteArray## ->
-      ByteArray## -> ByteArray## -> ByteArray## -> s)
-  -> (t -> t -> t -> t -> t -> t -> r)
-unsafeOp6 with k c_fun fa fb fc fd fe ff =
-  unsafeOp0 . with fa $ \a -> with fb $ \b -> with fc $ \c ->
-              with fd $ \d -> with fe $ \e -> with ff $ \f ->
-  k (c_fun a b c d e f)
 
 {-# INLINABLE importInteger #-}
 importInteger
