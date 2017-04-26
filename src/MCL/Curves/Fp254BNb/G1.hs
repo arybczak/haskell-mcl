@@ -13,17 +13,12 @@ module MCL.Curves.Fp254BNb.G1
   , g1_affineCoords
   , g1_getYfromX
   , g1_powFr
-  -- * Internal
-  , CC_G1
-  , MC_G1
-  , withG1
   ) where
 
 import Control.DeepSeq
 import Data.Binary
 import Data.Bits
 import Data.Group
-import Data.Primitive.ByteArray
 import Foreign.C.Types
 import GHC.Exts
 import GHC.Integer.GMP.Internals
@@ -34,10 +29,7 @@ import MCL.Internal.Utils
 import qualified MCL.Internal.Group as I
 import qualified MCL.Internal.Prim as I
 
-type CC_G1 = ByteArray#
-type MC_G1 = MutableByteArray# RealWorld
-
-data G1 = G1 { unG1 :: CC_G1 }
+data G1 = G1 { unG1 :: I.CC G1 }
 
 instance Binary G1 where
   put = putCurvePoint g1_affineCoords put
@@ -108,12 +100,6 @@ g1_powFr = I.powFr
 
 ----------------------------------------
 
-{-# INLINE withG1 #-}
-withG1 :: G1 -> (CC_G1 -> IO r) -> IO r
-withG1 = I.withPrim
-
-----------------------------------------
-
 instance I.Prim G1 where
   prim_size _ = fromIntegral c_mcl_fp254bnb_g1_size
   prim_wrap   = G1
@@ -137,38 +123,38 @@ foreign import ccall unsafe "hs_mcl_fp254bnb_g1_size"
   c_mcl_fp254bnb_g1_size :: CInt
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_g1_zero"
-  c_mcl_fp254bnb_g1_zero :: MC_G1 -> IO ()
+  c_mcl_fp254bnb_g1_zero :: I.MC G1 -> IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_g1_construct"
-  c_mcl_fp254bnb_g1_construct :: CC_Fp -> CC_Fp -> MC_G1 -> IO CInt
+  c_mcl_fp254bnb_g1_construct :: I.CC Fp -> I.CC Fp -> I.MC G1 -> IO CInt
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_g1_map_to"
-  c_mcl_fp254bnb_g1_map_to :: CC_Fp -> MC_G1 -> IO CInt
+  c_mcl_fp254bnb_g1_map_to :: I.CC Fp -> I.MC G1 -> IO CInt
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_g1_add"
-  c_mcl_fp254bnb_g1_add :: CC_G1 -> CC_G1 -> MC_G1 -> IO ()
+  c_mcl_fp254bnb_g1_add :: I.CC G1 -> I.CC G1 -> I.MC G1 -> IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_g1_invert"
-  c_mcl_fp254bnb_g1_invert :: CC_G1 -> MC_G1 -> IO ()
+  c_mcl_fp254bnb_g1_invert :: I.CC G1 -> I.MC G1 -> IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_g1_scalar_mul_native"
-  c_mcl_fp254bnb_g1_scalar_mul_native :: CInt -> CC_Fr -> CC_G1 -> MC_G1 -> IO ()
+  c_mcl_fp254bnb_g1_scalar_mul_native :: CInt -> CC_Fr -> I.CC G1 -> I.MC G1 -> IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_g1_scalar_mul"
   c_mcl_fp254bnb_g1_scalar_mul :: CInt -> I.CC Integer -> GmpSize# -> CInt
-                               -> CC_G1 -> MC_G1 -> IO ()
+                               -> I.CC G1 -> I.MC G1 -> IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_g1_scalar_mul_small"
-  c_mcl_fp254bnb_g1_scalar_mul_small :: CInt -> Int# -> CC_G1 -> MC_G1 -> IO ()
+  c_mcl_fp254bnb_g1_scalar_mul_small :: CInt -> Int# -> I.CC G1 -> I.MC G1 -> IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_g1_eq"
-  c_mcl_fp254bnb_g1_eq :: CC_G1 -> CC_G1 -> IO CInt
+  c_mcl_fp254bnb_g1_eq :: I.CC G1 -> I.CC G1 -> IO CInt
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_g1_is_zero"
-  c_mcl_fp254bnb_g1_is_zero :: CC_G1 -> IO CInt
+  c_mcl_fp254bnb_g1_is_zero :: I.CC G1 -> IO CInt
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_g1_affine_coords"
-  c_mcl_fp254bnb_g1_affine_coords :: CC_G1 -> MC_Fp -> MC_Fp -> IO ()
+  c_mcl_fp254bnb_g1_affine_coords :: I.CC G1 -> I.MC Fp -> I.MC Fp -> IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_g1_y_from_x"
-  c_mcl_fp254bnb_g1_y_from_x :: CInt -> CC_Fp -> MC_Fp -> IO CInt
+  c_mcl_fp254bnb_g1_y_from_x :: CInt -> I.CC Fp -> I.MC Fp -> IO CInt

@@ -138,38 +138,38 @@ foreign import ccall unsafe "hs_mcl_fp254bnb_g2_size"
   c_mcl_fp254bnb_g2_size :: CInt
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_g2_zero"
-  c_mcl_fp254bnb_g2_zero :: MC_G2 -> IO ()
+  c_mcl_fp254bnb_g2_zero :: I.MC G2 -> IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_g2_construct"
-  c_mcl_fp254bnb_g2_construct :: CC_Fp2 -> CC_Fp2 -> MC_G2 -> IO CInt
+  c_mcl_fp254bnb_g2_construct :: I.CC Fp2 -> I.CC Fp2 -> I.MC G2 -> IO CInt
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_g2_map_to"
-  c_mcl_fp254bnb_g2_map_to :: CC_Fp2 -> MC_G2 -> IO CInt
+  c_mcl_fp254bnb_g2_map_to :: I.CC Fp2 -> I.MC G2 -> IO CInt
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_g2_add"
-  c_mcl_fp254bnb_g2_add :: CC_G2 -> CC_G2 -> MC_G2 -> IO ()
+  c_mcl_fp254bnb_g2_add :: I.CC G2 -> I.CC G2 -> I.MC G2 -> IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_g2_invert"
-  c_mcl_fp254bnb_g2_invert :: CC_G2 -> MC_G2 -> IO ()
+  c_mcl_fp254bnb_g2_invert :: I.CC G2 -> I.MC G2 -> IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_g2_scalar_mul_native"
-  c_mcl_fp254bnb_g2_scalar_mul_native :: CInt -> CC_Fr -> CC_G2 -> MC_G2 -> IO ()
+  c_mcl_fp254bnb_g2_scalar_mul_native :: CInt -> CC_Fr -> I.CC G2 -> I.MC G2 -> IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_g2_scalar_mul"
   c_mcl_fp254bnb_g2_scalar_mul :: CInt -> ByteArray# -> GmpSize# -> CInt
-                               -> CC_G2 -> MC_G2 -> IO ()
+                               -> I.CC G2 -> I.MC G2 -> IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_g2_scalar_mul_small"
-  c_mcl_fp254bnb_g2_scalar_mul_small :: CInt -> Int# -> CC_G2 -> MC_G2 -> IO ()
+  c_mcl_fp254bnb_g2_scalar_mul_small :: CInt -> Int# -> I.CC G2 -> I.MC G2 -> IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_g2_eq"
-  c_mcl_fp254bnb_g2_eq :: CC_G2 -> CC_G2 -> IO CInt
+  c_mcl_fp254bnb_g2_eq :: I.CC G2 -> I.CC G2 -> IO CInt
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_g2_is_zero"
-  c_mcl_fp254bnb_g2_is_zero :: CC_G2 -> IO CInt
+  c_mcl_fp254bnb_g2_is_zero :: I.CC G2 -> IO CInt
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_g2_affine_coords"
-  c_mcl_fp254bnb_g2_affine_coords :: CC_G2 -> MC_Fp2 -> MC_Fp2 ->  IO ()
+  c_mcl_fp254bnb_g2_affine_coords :: I.CC G2 -> I.MC Fp2 -> I.MC Fp2 ->  IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_g2_y_from_x"
-  c_mcl_fp254bnb_g2_y_from_x :: CInt -> CC_Fp2 -> MC_Fp2 -> IO CInt
+  c_mcl_fp254bnb_g2_y_from_x :: CInt -> I.CC Fp2 -> I.MC Fp2 -> IO CInt

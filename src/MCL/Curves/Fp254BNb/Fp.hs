@@ -8,18 +8,10 @@ module MCL.Curves.Fp254BNb.Fp
   , fp_modulus
   , fp_isZero
   , fp_squareRoot
-  -- * Internal
-  , CC_Fp
-  , MC_Fp
-  , withFp
-  , newFp
-  , maybeNewFp
-  , new2Fp
   ) where
 
 import Control.DeepSeq
 import Data.Binary
-import Data.Primitive.ByteArray
 import Foreign.C.Types
 import GHC.Exts
 import GHC.Integer.GMP.Internals
@@ -29,10 +21,7 @@ import MCL.Internal.Utils
 import qualified MCL.Internal.Field as I
 import qualified MCL.Internal.Prim as I
 
-type CC_Fp = ByteArray#
-type MC_Fp = MutableByteArray# RealWorld
-
-data Fp = Fp { unFp :: CC_Fp }
+data Fp = Fp { unFp :: I.CC Fp }
 
 instance Binary Fp where
   put = putBytesFx 32 . fromFp
@@ -86,25 +75,6 @@ fp_squareRoot :: Fp -> Maybe Fp
 fp_squareRoot = I.squareRoot
 
 ----------------------------------------
--- C utils
-
-{-# INLINE withFp #-}
-withFp :: Fp -> (CC_Fp -> IO r) -> IO r
-withFp = I.withPrim
-
-{-# INLINE newFp #-}
-newFp :: (MC_Fp -> IO ()) -> IO Fp
-newFp = I.newPrim_
-
-{-# INLINE maybeNewFp #-}
-maybeNewFp :: (MC_Fp -> IO CInt) -> IO (Maybe Fp)
-maybeNewFp = I.maybeNewPrim
-
-{-# INLINE new2Fp #-}
-new2Fp :: (MC_Fp -> MC_Fp -> IO ()) -> IO (Fp, Fp)
-new2Fp = I.new2Prim
-
-----------------------------------------
 
 instance I.Prim Fp where
   prim_size _ = fromIntegral c_mcl_fp254bnb_fp_size
@@ -141,37 +111,37 @@ foreign import ccall unsafe "hs_mcl_fp254bnb_fp_modulus"
   c_mcl_fp254bnb_fp_modulus :: I.MC Integer -> CSize -> IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_fp_hash_to"
-  c_mcl_fp254bnb_fp_hash_to :: Ptr CChar -> CSize -> MC_Fp -> IO ()
+  c_mcl_fp254bnb_fp_hash_to :: Ptr CChar -> CSize -> I.MC Fp -> IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_fp_add"
-  c_mcl_fp254bnb_fp_add :: CC_Fp -> CC_Fp -> MC_Fp -> IO ()
+  c_mcl_fp254bnb_fp_add :: I.CC Fp -> I.CC Fp -> I.MC Fp -> IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_fp_subtract"
-  c_mcl_fp254bnb_fp_subtract :: CC_Fp -> CC_Fp -> MC_Fp -> IO ()
+  c_mcl_fp254bnb_fp_subtract :: I.CC Fp -> I.CC Fp -> I.MC Fp -> IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_fp_multiply"
-  c_mcl_fp254bnb_fp_multiply :: CC_Fp -> CC_Fp -> MC_Fp -> IO ()
+  c_mcl_fp254bnb_fp_multiply :: I.CC Fp -> I.CC Fp -> I.MC Fp -> IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_fp_negate"
-  c_mcl_fp254bnb_fp_negate :: CC_Fp -> MC_Fp -> IO ()
+  c_mcl_fp254bnb_fp_negate :: I.CC Fp -> I.MC Fp -> IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_fp_from_integer"
-  c_mcl_fp254bnb_fp_from_integer :: I.CC Integer -> GmpSize# -> MC_Fp -> IO ()
+  c_mcl_fp254bnb_fp_from_integer :: I.CC Integer -> GmpSize# -> I.MC Fp -> IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_fp_from_hsint"
-  c_mcl_fp254bnb_fp_from_hsint :: Int# -> MC_Fp -> IO ()
+  c_mcl_fp254bnb_fp_from_hsint :: Int# -> I.MC Fp -> IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_fp_invert"
-  c_mcl_fp254bnb_fp_invert :: CC_Fp -> MC_Fp -> IO ()
+  c_mcl_fp254bnb_fp_invert :: I.CC Fp -> I.MC Fp -> IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_fp_eq"
-  c_mcl_fp254bnb_fp_eq :: CC_Fp -> CC_Fp -> IO CInt
+  c_mcl_fp254bnb_fp_eq :: I.CC Fp -> I.CC Fp -> IO CInt
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_fp_to_gmp_integer"
-  c_mcl_fp254bnb_fp_to_gmp_integer :: CC_Fp -> I.MC Integer -> CSize -> IO ()
+  c_mcl_fp254bnb_fp_to_gmp_integer :: I.CC Fp -> I.MC Integer -> CSize -> IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_fp_is_zero"
-  c_mcl_fp254bnb_fp_is_zero :: CC_Fp -> IO CInt
+  c_mcl_fp254bnb_fp_is_zero :: I.CC Fp -> IO CInt
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_fp_sqrt"
-  c_mcl_fp254bnb_fp_sqrt :: CC_Fp -> MC_Fp -> IO CInt
+  c_mcl_fp254bnb_fp_sqrt :: I.CC Fp -> I.MC Fp -> IO CInt

@@ -11,28 +11,18 @@ module MCL.Curves.Fp254BNb.Fp12
   , fp12_c4
   , fp12_c5
   , fp12_isZero
-  -- * Internal
-  , CC_Fp12
-  , MC_Fp12
-  , withFp12
-  , newFp12
   ) where
 
 import Control.DeepSeq
 import Data.Binary
-import Data.Primitive.ByteArray
 import Foreign.C.Types
-import GHC.Exts
 
 import MCL.Curves.Fp254BNb.Fp2
 import MCL.Internal.Utils
 import qualified MCL.Internal.Field as I
 import qualified MCL.Internal.Prim as I
 
-type CC_Fp12 = ByteArray#
-type MC_Fp12 = MutableByteArray# RealWorld
-
-data Fp12 = Fp12 { unFp12 :: CC_Fp12 }
+data Fp12 = Fp12 { unFp12 :: I.CC Fp12 }
 
 instance Binary Fp12 where
   put n = put (fp12_c0 n) *> put (fp12_c1 n) *> put (fp12_c2 n)
@@ -68,7 +58,7 @@ beta = mkFp12 0 0 0 1 0 0
 
 {-# INLINABLE mkFp12 #-}
 mkFp12 :: Fp2 -> Fp2 -> Fp2 -> Fp2 -> Fp2 -> Fp2 -> Fp12
-mkFp12 = unsafeOp6 withFp2 newFp12 c_mcl_fp254bnb_fp12_from_base
+mkFp12 = unsafeOp6 I.withPrim I.newPrim_ c_mcl_fp254bnb_fp12_from_base
 
 {-# INLINABLE fp12_c0 #-}
 fp12_c0 :: Fp12 -> Fp2
@@ -102,18 +92,8 @@ fp12_isZero = I.isZero
 -- C utils
 
 {-# INLINE fp12_cX #-}
-fp12_cX :: (CC_Fp12 -> MC_Fp2 -> IO ()) -> Fp12 -> Fp2
-fp12_cX = unsafeOp1 withFp12 newFp2
-
-{-# INLINE withFp12 #-}
-withFp12 :: Fp12 -> (CC_Fp12 -> IO r) -> IO r
-withFp12 = I.withPrim
-
-{-# INLINE newFp12 #-}
-newFp12 :: (MC_Fp12 -> IO ()) -> IO Fp12
-newFp12 = I.newPrim_
-
-----------------------------------------
+fp12_cX :: (I.CC Fp12 -> I.MC Fp2 -> IO ()) -> Fp12 -> Fp2
+fp12_cX = unsafeOp1 I.withPrim I.newPrim_
 
 instance I.Prim Fp12 where
   prim_size _ = fromIntegral c_mcl_fp254bnb_fp12_size
@@ -133,44 +113,45 @@ foreign import ccall unsafe "hs_mcl_fp254bnb_fp12_size"
   c_mcl_fp254bnb_fp12_size :: CInt
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_fp12_add"
-  c_mcl_fp254bnb_fp12_add :: CC_Fp12 -> CC_Fp12 -> MC_Fp12 -> IO ()
+  c_mcl_fp254bnb_fp12_add :: I.CC Fp12 -> I.CC Fp12 -> I.MC Fp12 -> IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_fp12_subtract"
-  c_mcl_fp254bnb_fp12_subtract :: CC_Fp12 -> CC_Fp12 -> MC_Fp12 -> IO ()
+  c_mcl_fp254bnb_fp12_subtract :: I.CC Fp12 -> I.CC Fp12 -> I.MC Fp12 -> IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_fp12_multiply"
-  c_mcl_fp254bnb_fp12_multiply :: CC_Fp12 -> CC_Fp12 -> MC_Fp12 -> IO ()
+  c_mcl_fp254bnb_fp12_multiply :: I.CC Fp12 -> I.CC Fp12 -> I.MC Fp12 -> IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_fp12_negate"
-  c_mcl_fp254bnb_fp12_negate :: CC_Fp12 -> MC_Fp12 -> IO ()
+  c_mcl_fp254bnb_fp12_negate :: I.CC Fp12 -> I.MC Fp12 -> IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_fp12_from_base"
-  c_mcl_fp254bnb_fp12_from_base :: CC_Fp2 -> CC_Fp2 -> CC_Fp2 -> CC_Fp2 -> CC_Fp2
-                                -> CC_Fp2 -> MC_Fp12 -> IO ()
+  c_mcl_fp254bnb_fp12_from_base :: I.CC Fp2 -> I.CC Fp2 -> I.CC Fp2
+                                -> I.CC Fp2 -> I.CC Fp2 -> I.CC Fp2
+                                -> I.MC Fp12 -> IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_fp12_invert"
-  c_mcl_fp254bnb_fp12_invert :: CC_Fp12 -> MC_Fp12 -> IO ()
+  c_mcl_fp254bnb_fp12_invert :: I.CC Fp12 -> I.MC Fp12 -> IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_fp12_eq"
-  c_mcl_fp254bnb_fp12_eq :: CC_Fp12 -> CC_Fp12 -> IO CInt
+  c_mcl_fp254bnb_fp12_eq :: I.CC Fp12 -> I.CC Fp12 -> IO CInt
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_fp12_c0"
-  c_mcl_fp254bnb_fp12_c0 :: CC_Fp12 -> MC_Fp2 -> IO ()
+  c_mcl_fp254bnb_fp12_c0 :: I.CC Fp12 -> I.MC Fp2 -> IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_fp12_c1"
-  c_mcl_fp254bnb_fp12_c1 :: CC_Fp12 -> MC_Fp2 -> IO ()
+  c_mcl_fp254bnb_fp12_c1 :: I.CC Fp12 -> I.MC Fp2 -> IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_fp12_c2"
-  c_mcl_fp254bnb_fp12_c2 :: CC_Fp12 -> MC_Fp2 -> IO ()
+  c_mcl_fp254bnb_fp12_c2 :: I.CC Fp12 -> I.MC Fp2 -> IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_fp12_c3"
-  c_mcl_fp254bnb_fp12_c3 :: CC_Fp12 -> MC_Fp2 -> IO ()
+  c_mcl_fp254bnb_fp12_c3 :: I.CC Fp12 -> I.MC Fp2 -> IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_fp12_c4"
-  c_mcl_fp254bnb_fp12_c4 :: CC_Fp12 -> MC_Fp2 -> IO ()
+  c_mcl_fp254bnb_fp12_c4 :: I.CC Fp12 -> I.MC Fp2 -> IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_fp12_c5"
-  c_mcl_fp254bnb_fp12_c5 :: CC_Fp12 -> MC_Fp2 -> IO ()
+  c_mcl_fp254bnb_fp12_c5 :: I.CC Fp12 -> I.MC Fp2 -> IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_fp12_is_zero"
-  c_mcl_fp254bnb_fp12_is_zero :: CC_Fp12 -> IO CInt
+  c_mcl_fp254bnb_fp12_is_zero :: I.CC Fp12 -> IO CInt

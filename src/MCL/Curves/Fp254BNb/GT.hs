@@ -1,6 +1,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MagicHash #-}
 module MCL.Curves.Fp254BNb.GT
-  ( GT(..)
+  ( GT
   , mkGT
   , gt_powFr
   ) where
@@ -8,11 +9,13 @@ module MCL.Curves.Fp254BNb.GT
 import Control.DeepSeq
 import Data.Binary
 import Data.Group
+import GHC.Exts
 
 import MCL.Curves.Fp254BNb.Fp12
 import MCL.Curves.Fp254BNb.Fr
+import qualified MCL.Internal.Prim as I
 
-newtype GT = GT_ Fp12
+newtype GT = GT_ { unGT :: Fp12 }
   deriving (Binary, Eq, NFData)
 
 instance Show GT where
@@ -37,3 +40,10 @@ mkGT a = case a ^ fr_modulus of
 {-# INLINABLE gt_powFr #-}
 gt_powFr :: GT -> Fr -> GT
 gt_powFr (GT_ a) p = GT_ (a ^ fromFr p) -- temporary
+
+----------------------------------------
+
+instance I.Prim GT where
+  prim_size _ = I.prim_size (proxy# :: Proxy# Fp12)
+  prim_wrap   = \ba -> GT_ (I.prim_wrap ba)
+  prim_unwrap = \gt -> I.prim_unwrap (unGT gt)
