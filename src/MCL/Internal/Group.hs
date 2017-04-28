@@ -3,7 +3,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module MCL.Internal.Group where
 
-import Data.Functor.Identity
 import Foreign.C.Types
 import GHC.Exts
 import GHC.Integer.GMP.Internals
@@ -14,7 +13,7 @@ import MCL.Internal.Utils
 class (Prim fp, Prim g) => CurveGroup fp g | g -> fp where
   c_zero              :: Proxy# g -> MC g -> IO ()
   c_construct         :: Proxy# g -> CC fp -> CC fp -> MC g -> IO CInt
-  c_map_to            :: Proxy# g -> CC fp -> MC g -> IO CInt
+  c_map_to            :: Proxy# g -> CC fp -> MC g -> IO ()
   c_add               :: Proxy# g -> CC g -> CC g -> MC g -> IO ()
   c_invert            :: Proxy# g -> CC g -> MC g -> IO ()
   c_scalar_mul_native :: Proxy# g -> CInt -> CC fr -> CC g -> MC g -> IO ()
@@ -30,19 +29,9 @@ class (Prim fp, Prim g) => CurveGroup fp g | g -> fp where
 mkG :: forall fp g. CurveGroup fp g => fp -> fp -> Maybe g
 mkG = unsafeOp2 maybeNewPrim $ c_construct (proxy# :: Proxy# g)
 
-{-# INLINABLE mapToG_ #-}
-mapToG_ :: forall fp g. CurveGroup fp g => fp -> Maybe g
-mapToG_ = unsafeOp1 maybeNewPrim $ c_map_to (proxy# :: Proxy# g)
-
-{-# INLINABLE mapToGM #-}
-mapToGM :: (Monad m, CurveGroup fp g) => (fp -> m fp) -> fp -> m g
-mapToGM f a = case mapToG_ a of
-  Just p  -> return p
-  Nothing -> f a >>= mapToGM f
-
 {-# INLINABLE mapToG #-}
-mapToG :: CurveGroup fp g => (fp -> fp) -> fp -> g
-mapToG f = runIdentity . mapToGM (Identity . f)
+mapToG :: forall fp g. CurveGroup fp g => fp -> g
+mapToG = unsafeOp1_ $ c_map_to (proxy# :: Proxy# g)
 
 {-# INLINABLE zero #-}
 zero :: forall fp g. CurveGroup fp g => g

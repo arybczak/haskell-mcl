@@ -127,16 +127,22 @@ inline int construct(const FpT *x, const FpT *y, GrT *result)
 }
 
 template <typename MapT, typename FpT, typename GrT>
-inline int map_to(MapT map, const FpT *a, GrT *result)
+inline void map_to(MapT map, const FpT *ca, GrT *result)
 {
-	int success = 1;
+	FpT a = *ca;
 	mem_util::init(result);
-	try {
-		map(*result, *a);
-	} catch (cybozu::Exception &) {
-		success = 0;
+	while (true)
+	{
+		try
+		{
+			map(*result, a);
+			break;
+		}
+		catch (cybozu::Exception &)
+		{
+			*a.getFp0() += FpT::BaseFp::one();
+		}
 	}
-	return success;
 }
 
 template <typename GrT>

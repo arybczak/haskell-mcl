@@ -5,9 +5,7 @@
 module MCL.Curves.Fp254BNb.G1
   ( G1
   , mkG1
-  , mapToG1_
   , mapToG1
-  , mapToG1M
   , g1_zero
   , g1_isZero
   , g1_affineCoords
@@ -75,17 +73,9 @@ mkG1
   -> Maybe G1
 mkG1 = I.mkG
 
-{-# INLINE mapToG1_ #-}
-mapToG1_ :: Fp -> Maybe G1
-mapToG1_ = I.mapToG_
-
 {-# INLINE mapToG1 #-}
-mapToG1 :: (Fp -> Fp) -> Fp -> G1
+mapToG1 :: Fp -> G1
 mapToG1 = I.mapToG
-
-{-# INLINE mapToG1M #-}
-mapToG1M :: Monad m => (Fp -> m Fp) -> Fp -> m G1
-mapToG1M = I.mapToGM
 
 -- | Neutral element of G1 (point at infinity).
 {-# NOINLINE g1_zero #-}
@@ -152,7 +142,7 @@ foreign import ccall unsafe "hs_mcl_fp254bnb_g1_construct"
   c_mcl_fp254bnb_g1_construct :: I.CC Fp -> I.CC Fp -> I.MC G1 -> IO CInt
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_g1_map_to"
-  c_mcl_fp254bnb_g1_map_to :: I.CC Fp -> I.MC G1 -> IO CInt
+  c_mcl_fp254bnb_g1_map_to :: I.CC Fp -> I.MC G1 -> IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_g1_add"
   c_mcl_fp254bnb_g1_add :: I.CC G1 -> I.CC G1 -> I.MC G1 -> IO ()

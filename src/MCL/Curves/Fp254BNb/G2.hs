@@ -5,9 +5,7 @@
 module MCL.Curves.Fp254BNb.G2
   ( G2
   , mkG2
-  , mapToG2_
   , mapToG2
-  , mapToG2M
   , g2_zero
   , g2_isZero
   , g2_affineCoords
@@ -77,17 +75,9 @@ mkG2
   -> Maybe G2
 mkG2 = I.mkG
 
-{-# INLINABLE mapToG2_ #-}
-mapToG2_ :: Fp2 -> Maybe G2
-mapToG2_ = I.mapToG_
-
 {-# INLINABLE mapToG2 #-}
-mapToG2 :: (Fp2 -> Fp2) -> Fp2 -> G2
+mapToG2 :: Fp2 -> G2
 mapToG2 = I.mapToG
-
-{-# INLINABLE mapToG2M #-}
-mapToG2M :: Monad m => (Fp2 -> m Fp2) -> Fp2 -> m G2
-mapToG2M = I.mapToGM
 
 -- | Neutral element of G2 (point at infinity).
 {-# NOINLINE g2_zero #-}
@@ -154,7 +144,7 @@ foreign import ccall unsafe "hs_mcl_fp254bnb_g2_construct"
   c_mcl_fp254bnb_g2_construct :: I.CC Fp2 -> I.CC Fp2 -> I.MC G2 -> IO CInt
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_g2_map_to"
-  c_mcl_fp254bnb_g2_map_to :: I.CC Fp2 -> I.MC G2 -> IO CInt
+  c_mcl_fp254bnb_g2_map_to :: I.CC Fp2 -> I.MC G2 -> IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_g2_add"
   c_mcl_fp254bnb_g2_add :: I.CC G2 -> I.CC G2 -> I.MC G2 -> IO ()

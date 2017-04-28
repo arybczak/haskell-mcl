@@ -60,7 +60,7 @@ main = defaultMain
   , bgroup "G1"
     [ benchGroupArith g1_powFr g1_p g1_q
     , bench "construct" $ nf (uncurry mkG1) (g1_p_x, g1_p_y)
-    , bench "map_to"    $ nf mapToG1_ fp_a
+    , bench "map_to"    $ nf mapToG1 fp_a
     , bench "eq"        $ nf (uncurry (==)) (g1_p, g1_q)
     , bench "is_zero"   $ nf g1_isZero g1_p
     , bench "affine"    $ nf g1_affineCoords g1_p
@@ -71,7 +71,7 @@ main = defaultMain
   , bgroup "G2"
     [ benchGroupArith g2_powFr g2_p g2_q
     , bench "construct" $ nf (uncurry mkG2) (g2_p_x, g2_p_y)
-    , bench "map_to"    $ nf mapToG2_ fp2_a
+    , bench "map_to"    $ nf mapToG2 fp2_a
     , bench "eq"        $ nf (uncurry (==)) (g2_p, g2_q)
     , bench "is_zero"   $ nf g2_isZero g2_p
     , bench "affine"    $ nf g2_affineCoords g2_p
@@ -145,8 +145,8 @@ fp12_b = mkFp12 (mkFp2 (hashToFp "m") (hashToFp "n"))
 ----------------------------------------
 
 g1_p, g1_q :: G1
-g1_p = mapToG1 (error "g1_p") fp_a
-g1_q = mapToG1 (error "g1_q") fp_b
+g1_p = mapToG1 fp_a
+g1_q = mapToG1 fp_b
 
 g1_p_x, g1_p_y :: Fp
 (g1_p_x, g1_p_y) = fromJust $ g1_affineCoords g1_p
@@ -154,8 +154,8 @@ g1_p_x, g1_p_y :: Fp
 ----------------------------------------
 
 g2_p, g2_q :: G2
-g2_p = mapToG2 (error "g2_p") fp2_a
-g2_q = mapToG2 (error "g2_q") fp2_b
+g2_p = mapToG2 fp2_a
+g2_q = mapToG2 fp2_b
 
 g2_p_x, g2_p_y :: Fp2
 (g2_p_x, g2_p_y) = fromJust $ g2_affineCoords g2_p

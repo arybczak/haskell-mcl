@@ -368,7 +368,7 @@ int hs_mcl_fp254bnb_g1_construct(const Fp *x, const Fp *y, G1 *result)
 	return group_impl::construct(x, y, result);
 }
 
-int hs_mcl_fp254bnb_g1_map_to(const Fp *a, G1 *result)
+void hs_mcl_fp254bnb_g1_map_to(const Fp *a, G1 *result)
 {
 	return group_impl::map_to(BN::mapToG1, a, result);
 }
@@ -450,7 +450,7 @@ int hs_mcl_fp254bnb_g2_construct(const Fp2 *x, const Fp2 *y, G2 *result)
 	return group_impl::construct(x, y, result);
 }
 
-int hs_mcl_fp254bnb_g2_map_to(const Fp2 *a, G2 *result)
+void hs_mcl_fp254bnb_g2_map_to(const Fp2 *a, G2 *result)
 {
 	return group_impl::map_to(BN::mapToG2, a, result);
 }
