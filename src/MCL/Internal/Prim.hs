@@ -10,8 +10,11 @@ import System.IO.Unsafe
 
 import MCL.Internal.Utils
 
-type CC fp = ByteArray#
-type MC fp = MutableByteArray# RealWorld
+-- | C representation of a const MCL object or Integer.
+type CC t = ByteArray#
+
+-- | C representation of a mutable MCL object or Integer.
+type MC t = MutableByteArray# RealWorld
 
 class Prim t where
   prim_size   :: Proxy# t -> Int

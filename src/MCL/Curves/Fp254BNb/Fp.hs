@@ -21,6 +21,7 @@ import MCL.Internal.Utils
 import qualified MCL.Internal.Field as I
 import qualified MCL.Internal.Prim as I
 
+-- | Prime finite field of characteristic @p@.
 data Fp = Fp { unFp :: I.CC Fp }
 
 instance Binary Fp where
@@ -49,38 +50,47 @@ instance Eq Fp where
 instance Show Fp where
   showsPrec = I.showsPrecFp
 
+-- | Construct an element of Fp from Integer.
 {-# INLINE mkFp #-}
 mkFp :: Integer -> Fp
 mkFp = I.mkFp
 
+-- | Hash arbitrary message to Fr by computing its SHA256 hash and treating its
+-- first 253 bits as the value of Fr.
 {-# INLINE hashToFp #-}
 hashToFp :: BS.ByteString -> Fp
 hashToFp = I.hashToFp
 
+-- | Convert the element of Fp back to non-negative Integer.
 {-# INLINE fromFp #-}
 fromFp :: Fp -> Integer
 fromFp = I.fromFp
 
--- | Modulus of 'Fp'.
+-- | Modulus of Fp.
 {-# NOINLINE fp_modulus #-}
 fp_modulus :: Integer
 fp_modulus = I.modulus (proxy# :: Proxy# Fp)
 
+-- | Check if the element of Fp is zero.
 {-# INLINE fp_isZero #-}
 fp_isZero :: Fp -> Bool
 fp_isZero = I.isZero
 
+-- | Compute square root of the element @a ∈ Fp@. If polynomial @x² - a@ has no
+-- roots in Fp, no result is returned.
 {-# INLINE fp_squareRoot #-}
 fp_squareRoot :: Fp -> Maybe Fp
 fp_squareRoot = I.squareRoot
 
 ----------------------------------------
 
+-- | Internal
 instance I.Prim Fp where
   prim_size _ = fromIntegral c_mcl_fp254bnb_fp_size
   prim_wrap   = Fp
   prim_unwrap = unFp
 
+-- | Internal
 instance I.BaseField Fp where
   c_limbs        _ = fromIntegral c_mcl_fp254bnb_fp_limbs
   c_modulus      _ = c_mcl_fp254bnb_fp_modulus
@@ -89,6 +99,7 @@ instance I.BaseField Fp where
   c_from_hsint   _ = c_mcl_fp254bnb_fp_from_hsint
   c_to_integer   _ = c_mcl_fp254bnb_fp_to_gmp_integer
 
+-- | Internal
 instance I.HasArith Fp where
   c_add      _ = c_mcl_fp254bnb_fp_add
   c_subtract _ = c_mcl_fp254bnb_fp_subtract
@@ -98,6 +109,7 @@ instance I.HasArith Fp where
   c_eq       _ = c_mcl_fp254bnb_fp_eq
   c_is_zero  _ = c_mcl_fp254bnb_fp_is_zero
 
+-- | Internal
 instance I.HasSqrt Fp where
   c_sqrt _ = c_mcl_fp254bnb_fp_sqrt
 

@@ -13,10 +13,6 @@ module MCL.Curves.Fp254BNb.G2
   , g2_affineCoords
   , g2_getYfromX
   , g2_powFr
-  -- * Internal
-  , CC_G2
-  , MC_G2
-  , withG2
   ) where
 
 import Control.DeepSeq
@@ -35,10 +31,9 @@ import MCL.Internal.Utils
 import qualified MCL.Internal.Group as I
 import qualified MCL.Internal.Prim as I
 
-type CC_G2 = ByteArray#
-type MC_G2 = MutableByteArray# RealWorld
-
-data G2 = G2 { unG2 :: CC_G2 }
+-- | Subgroup of @E'(Fp2)@ (i.e. curve points with coordinates in Fp2) of order
+-- @r@.
+data G2 = G2 { unG2 :: I.CC G2 }
 
 instance Binary G2 where
   put = putCurvePoint g2_affineCoords put
@@ -61,18 +56,25 @@ instance Eq G2 where
 instance Show G2 where
   showsPrec = I.showsPrecG
 
+-- | Point addition.
 instance Monoid G2 where
   mempty  = I.zero
   mappend = I.plusG
 
+-- | Note: 'pow' uses const-time method, just as 'g2_powFr'.
 instance Group G2 where
   invert = I.invertG
   pow    = flip I.scalarMul
 
 instance Abelian G2
 
+-- | Construct non-zero element of G2 from two coordinates in Fp2. If @(X,Y)@
+-- does not lie on G2, no result is returned.
 {-# INLINABLE mkG2 #-}
-mkG2 :: Fp2 -> Fp2 -> Maybe G2
+mkG2
+  :: Fp2 -- ^ X coordinate
+  -> Fp2 -- ^ Y coordinate
+  -> Maybe G2
 mkG2 = I.mkG
 
 {-# INLINABLE mapToG2_ #-}
@@ -87,39 +89,47 @@ mapToG2 = I.mapToG
 mapToG2M :: Monad m => (Fp2 -> m Fp2) -> Fp2 -> m G2
 mapToG2M = I.mapToGM
 
+-- | Neutral element of G2 (point at infinity).
 {-# NOINLINE g2_zero #-}
 g2_zero :: G2
 g2_zero = I.zero
 
+-- | Check if the element of G2 is point at infinity.
 {-# INLINABLE g2_isZero #-}
 g2_isZero :: G2 -> Bool
 g2_isZero = I.isZero
 
+-- | Return affine coordinates of the element @a ∈ G2@. No result is returned if
+-- @a@ is the point at inifinity.
 {-# INLINABLE g2_affineCoords #-}
 g2_affineCoords :: G2 -> Maybe (Fp2, Fp2)
 g2_affineCoords = I.affineCoords
 
+-- | Attempt to recover Y coordinate from its least significant bit and X
+-- coordinate.
 {-# INLINABLE g2_getYfromX #-}
-g2_getYfromX :: Bool -> Fp2 -> Maybe Fp2
+g2_getYfromX
+  :: Bool -- ^ Least significant bit of Y coordinate
+  -> Fp2  -- ^ X coordinate
+  -> Maybe Fp2
 g2_getYfromX = I.getYfromX (proxy# :: Proxy# G2)
 
+-- | Multiply the element of G2 by a scalar @x ∈ Fr@. Note: it uses const-time
+-- method, i.e. the time it takes to calculate the result depends only on the
+-- bitlength of @x@.
 {-# INLINABLE g2_powFr #-}
 g2_powFr :: G2 -> Fr -> G2
 g2_powFr = I.powFr
 
 ----------------------------------------
 
-{-# INLINE withG2 #-}
-withG2 :: G2 -> (CC_G2 -> IO r) -> IO r
-withG2 = I.withPrim
-
-----------------------------------------
-
+-- | Internal
 instance I.Prim G2 where
   prim_size _ = fromIntegral c_mcl_fp254bnb_g2_size
   prim_wrap   = G2
   prim_unwrap = unG2
 
+-- | Internal
 instance I.CurveGroup Fp2 G2 where
   c_zero              _ = c_mcl_fp254bnb_g2_zero
   c_construct         _ = c_mcl_fp254bnb_g2_construct
@@ -153,7 +163,7 @@ foreign import ccall unsafe "hs_mcl_fp254bnb_g2_invert"
   c_mcl_fp254bnb_g2_invert :: I.CC G2 -> I.MC G2 -> IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_g2_scalar_mul_native"
-  c_mcl_fp254bnb_g2_scalar_mul_native :: CInt -> CC_Fr -> I.CC G2 -> I.MC G2 -> IO ()
+  c_mcl_fp254bnb_g2_scalar_mul_native :: CInt -> I.CC Fr -> I.CC G2 -> I.MC G2 -> IO ()
 
 foreign import ccall unsafe "hs_mcl_fp254bnb_g2_scalar_mul"
   c_mcl_fp254bnb_g2_scalar_mul :: CInt -> ByteArray# -> GmpSize# -> CInt

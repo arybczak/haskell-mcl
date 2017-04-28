@@ -18,6 +18,7 @@ import MCL.Curves.Fp254BNb.Fp
 import qualified MCL.Internal.Field as I
 import qualified MCL.Internal.Prim as I
 
+-- | Quadratic field extension of 'Fp' defined as @Fp(α)@, where @α² = -1@.
 data Fp2 = Fp2 { unFp2 :: I.CC Fp2 }
 
 instance Binary Fp2 where
@@ -59,37 +60,46 @@ instance Show Fp2 where
         1 -> plus out                  . ("a" ++)
         _ -> plus out . showsPrec p c1 . ("a" ++)
 
+-- | Root of the polynomial @x² + 1@.
 {-# NOINLINE alpha #-}
 alpha :: Fp2
 alpha = mkFp2 0 1
 
-{-# INLINABLE mkFp2 #-}
+-- | Construct an element of Fp from two coordinates in Fp.
+{-# INLINE mkFp2 #-}
 mkFp2 :: Fp -> Fp -> Fp2
 mkFp2 = I.unsafeOp2_ c_mcl_fp254bnb_fp2_from_base
 
-{-# INLINABLE fp2_c0 #-}
+-- | Return first Fp coordinate of the element in Fp2.
+{-# INLINE fp2_c0 #-}
 fp2_c0 :: Fp2 -> Fp
 fp2_c0 = I.unsafeOp1_ c_mcl_fp254bnb_fp2_c0
 
-{-# INLINABLE fp2_c1 #-}
+-- | Return second Fp coordinate of the element in Fp2.
+{-# INLINE fp2_c1 #-}
 fp2_c1 :: Fp2 -> Fp
 fp2_c1 = I.unsafeOp1_ c_mcl_fp254bnb_fp2_c1
 
+-- | Check whether the element of Fp2 is zero.
 {-# INLINE fp2_isZero #-}
 fp2_isZero :: Fp2 -> Bool
 fp2_isZero = I.isZero
 
+-- | Compute square root of the element @a ∈ Fp2@. If polynomial @x² - a@ has no
+-- roots in Fp2, no result is returned.
 {-# INLINE fp2_squareRoot #-}
 fp2_squareRoot :: Fp2 -> Maybe Fp2
 fp2_squareRoot = I.squareRoot
 
 ----------------------------------------
 
+-- | Internal
 instance I.Prim Fp2 where
   prim_size _ = fromIntegral c_mcl_fp254bnb_fp2_size
   prim_wrap   = Fp2
   prim_unwrap = unFp2
 
+-- | Internal
 instance I.HasArith Fp2 where
   c_add      _ = c_mcl_fp254bnb_fp2_add
   c_subtract _ = c_mcl_fp254bnb_fp2_subtract
@@ -99,6 +109,7 @@ instance I.HasArith Fp2 where
   c_eq       _ = c_mcl_fp254bnb_fp2_eq
   c_is_zero  _ = c_mcl_fp254bnb_fp2_is_zero
 
+-- | Internal
 instance I.HasSqrt Fp2 where
   c_sqrt _ = c_mcl_fp254bnb_fp2_sqrt
 

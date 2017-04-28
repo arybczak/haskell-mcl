@@ -64,7 +64,7 @@ getYfromX g = unsafeOp1 maybeNewPrim . c_y_from_x g . boolToCInt
 
 {-# INLINABLE powFr #-}
 powFr :: forall fp fr g. (CurveGroup fp g, Prim fr) => g -> fr -> g
-powFr = unsafeOp2_ $ c_scalar_mul_native (proxy# :: Proxy# g) 1
+powFr = unsafeOp2_ $ \p x -> c_scalar_mul_native (proxy# :: Proxy# g) 1 x p
 
 {-# INLINABLE eqG #-}
 eqG :: forall fp g. CurveGroup fp g => g -> g -> Bool
@@ -80,7 +80,7 @@ invertG = unsafeOp1_ $ c_invert (proxy# :: Proxy# g)
 
 {-# INLINABLE scalarMul #-}
 scalarMul :: forall a fp g. (CurveGroup fp g, Integral a) => a -> g -> g
-scalarMul n fp = unsafeOp0 . withPrim fp $ \p -> newPrim_ $ case toInteger n of
+scalarMul n = unsafeOp1_ $ \p -> case toInteger n of
   Jp# x@(BN# ba) -> c_scalar_mul_bignat g 1 ba (sizeofBigNat# x) 0 p
   Jn# x@(BN# ba) -> c_scalar_mul_bignat g 1 ba (sizeofBigNat# x) 1 p
   S# k           -> c_scalar_mul_hsint  g 1 k p

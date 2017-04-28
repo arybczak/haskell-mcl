@@ -1,5 +1,5 @@
 {-# LANGUAGE UnliftedFFITypes #-}
-module MCL.Curves.Fp254BNb.Pairing where
+module MCL.Curves.Fp254BNb.Pairing (pairing) where
 
 import MCL.Curves.Fp254BNb.Fp12
 import MCL.Curves.Fp254BNb.G1
@@ -7,6 +7,7 @@ import MCL.Curves.Fp254BNb.G2
 import MCL.Curves.Fp254BNb.GT
 import qualified MCL.Internal.Prim as I
 
+-- | Compute optimal ate pairing.
 pairing :: G1 -> G2 -> GT
 pairing = I.unsafeOp2_ c_mcl_fp254bnb_pairing
 
