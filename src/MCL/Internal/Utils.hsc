@@ -10,8 +10,6 @@ module MCL.Internal.Utils
   , getBytesFx
   , putCurvePoint
   , getCurvePoint
-  , withByteArray1
-  , withByteArray2
   , importInteger
   ) where
 
@@ -89,34 +87,6 @@ getCurvePoint zero mkG = getWord8 >>= \case
   n -> fail $ errPrefix ++ "expected 0 or 1, got " ++ show n
   where
     errPrefix = "getCurvePoint (" ++ show (typeOf zero) ++ "): "
-
-----------------------------------------
-
-{-# INLINABLE withByteArray1 #-}
-withByteArray1
-  :: Int
-  -> (s -> ByteArray## -> r)
-  -> (MutableByteArray## RealWorld -> IO s)
-  -> IO r
-withByteArray1 size k c_fun = do
-  mba@(MutableByteArray umba) <- newByteArray size
-  r <- c_fun umba
-  ByteArray uba <- unsafeFreezeByteArray mba
-  return (k r uba)
-
-{-# INLINABLE withByteArray2 #-}
-withByteArray2
-  :: Int
-  -> (ByteArray## -> r)
-  -> (MutableByteArray## RealWorld -> MutableByteArray## RealWorld -> IO ())
-  -> IO (r, r)
-withByteArray2 size k c_fun = do
-  mba@(MutableByteArray umba) <- newByteArray size
-  mbb@(MutableByteArray umbb) <- newByteArray size
-  c_fun umba umbb
-  ByteArray uba <- unsafeFreezeByteArray mba
-  ByteArray ubb <- unsafeFreezeByteArray mbb
-  return (k uba, k ubb)
 
 ----------------------------------------
 

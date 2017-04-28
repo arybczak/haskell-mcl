@@ -27,6 +27,9 @@ library
                        MCL.Internal.Field
                        MCL.Internal.Group
                        MCL.Internal.Prim
+                       MCL.Internal.Prim.Class
+                       MCL.Internal.Prim.Pinned
+                       MCL.Internal.Prim.Unpinned
                        MCL.Internal.Utils
 
   build-depends:       base < 5,

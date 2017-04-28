@@ -27,11 +27,11 @@ class (Prim fp, Prim g) => CurveGroup fp g | g -> fp where
 
 {-# INLINABLE mkG #-}
 mkG :: forall fp g. CurveGroup fp g => fp -> fp -> Maybe g
-mkG = unsafeOp2 maybeNewPrim $ c_construct (proxy# :: Proxy# g)
+mkG = safeOp2 maybeNewPrimPinned $ c_construct (proxy# :: Proxy# g)
 
 {-# INLINABLE mapToG #-}
 mapToG :: forall fp g. CurveGroup fp g => fp -> g
-mapToG = unsafeOp1_ $ c_map_to (proxy# :: Proxy# g)
+mapToG = safeOp1_ $ c_map_to (proxy# :: Proxy# g)
 
 {-# INLINABLE zero #-}
 zero :: forall fp g. CurveGroup fp g => g
@@ -53,7 +53,7 @@ getYfromX g = unsafeOp1 maybeNewPrim . c_y_from_x g . boolToCInt
 
 {-# INLINABLE powFr #-}
 powFr :: forall fp fr g. (CurveGroup fp g, Prim fr) => g -> fr -> g
-powFr = unsafeOp2_ $ \p x -> c_scalar_mul_native (proxy# :: Proxy# g) 1 x p
+powFr = safeOp2_ $ \p x -> c_scalar_mul_native (proxy# :: Proxy# g) 1 x p
 
 {-# INLINABLE eqG #-}
 eqG :: forall fp g. CurveGroup fp g => g -> g -> Bool
@@ -69,7 +69,7 @@ invertG = unsafeOp1_ $ c_invert (proxy# :: Proxy# g)
 
 {-# INLINABLE scalarMul #-}
 scalarMul :: forall a fp g. (CurveGroup fp g, Integral a) => a -> g -> g
-scalarMul n = unsafeOp1_ $ \p -> case toInteger n of
+scalarMul n = safeOp1_ $ \p -> case toInteger n of
   Jp# x@(BN# ba) -> c_scalar_mul_bignat g 1 ba (sizeofBigNat# x) 0 p
   Jn# x@(BN# ba) -> c_scalar_mul_bignat g 1 ba (sizeofBigNat# x) 1 p
   S# k           -> c_scalar_mul_hsint  g 1 k p
