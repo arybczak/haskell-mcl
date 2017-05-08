@@ -1,5 +1,6 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MagicHash #-}
+{-# LANGUAGE UnliftedFFITypes #-}
 module MCL.Curves.Fp254BNb.GT
   ( GT
   , mkGT
@@ -9,6 +10,7 @@ module MCL.Curves.Fp254BNb.GT
 import Control.DeepSeq
 import Data.Binary
 import Data.Group
+import Foreign.C.Types
 import GHC.Exts
 
 import MCL.Curves.Fp254BNb.Fp12
@@ -28,7 +30,7 @@ instance Monoid GT where
 
 instance Group GT where
   invert (GT_ a) = GT_ (recip a)
-  pow (GT_ a) p  = GT_ (a ^^ p) -- temporary
+  pow a p  = a `gt_powFr` mkFr (toInteger p)
 
 instance Abelian GT
 
@@ -45,7 +47,7 @@ mkGT a = case a ^ fr_modulus of
 -- bitlength of @x@.
 {-# INLINABLE gt_powFr #-}
 gt_powFr :: GT -> Fr -> GT
-gt_powFr (GT_ a) p = GT_ (a ^ fromFr p) -- temporary
+gt_powFr (GT_ a) = GT_ . I.safeOp2_ (c_mcl_fp254bnb_gt_pow_native 1) a
 
 ----------------------------------------
 
@@ -54,3 +56,6 @@ instance I.Prim GT where
   prim_size _ = I.prim_size (proxy# :: Proxy# Fp12)
   prim_wrap   = \ba -> GT_ (I.prim_wrap ba)
   prim_unwrap = \gt -> I.prim_unwrap (unGT gt)
+
+foreign import ccall safe "hs_mcl_fp254bnb_gt_pow_native"
+  c_mcl_fp254bnb_gt_pow_native :: CInt -> I.CC Fp12 -> I.CC Fr -> I.MC Fp12 -> IO ()

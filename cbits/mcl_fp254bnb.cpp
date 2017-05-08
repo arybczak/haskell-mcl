@@ -513,6 +513,15 @@ int hs_mcl_fp254bnb_g2_y_from_x(const int y_lsb, const Fp2 *x, Fp2 *result)
 }
 
 ////////////////////////////////////////////////////////////
+// GT
+
+void hs_mcl_fp254bnb_gt_pow_native(const int const_time, const Fp12 *a,
+                                   const Fr *b, Fp12 *result)
+{
+	return field_impl::pow_native(const_time, a, b, result);
+}
+
+////////////////////////////////////////////////////////////
 // Pairing
 
 void hs_mcl_fp254bnb_pairing(const G1 *p, const G2 *q, Fp12 *result)

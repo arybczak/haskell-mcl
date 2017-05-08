@@ -79,6 +79,10 @@ main = defaultMain
     , benchBinary "regular" g2_p
     , benchBinary "compressed" $ Compressed g2_p
     ]
+  , bgroup "GT"
+    [ bench "pow"        $ nf (uncurry pow) (gt_a, large_integer)
+    , bench "pow_native" $ nf (uncurry gt_powFr) (gt_a, large_integer_fr)
+    ]
   , bgroup "pairing"
     [ bench "compute1" $ nf (uncurry pairing) (g1_p, g2_q)
     , bench "compute2" $ nf (uncurry pairing) (g1_q, g2_p)
@@ -159,6 +163,9 @@ g2_q = mapToG2 fp2_b
 
 g2_p_x, g2_p_y :: Fp2
 (g2_p_x, g2_p_y) = fromJust $ g2_affineCoords g2_p
+
+gt_a :: GT
+gt_a = pairing g1_p g2_q
 
 ----------------------------------------
 

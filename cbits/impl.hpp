@@ -35,6 +35,17 @@ inline void multiply(const FpT *a, const FpT *b, FpT *result)
 	FpT::mul(*result, *a, *b);
 }
 
+template <typename FpT, typename FrT>
+inline void pow_native(const int const_time, const FpT *a,
+                       const FrT *p, FpT *result)
+{
+	mem_util::init(result);
+	if (const_time)
+		FpT::powCT(*result, *a, *p);
+	else
+		FpT::pow(*result, *a, *p);
+}
+
 template <typename FpT>
 inline void negate(const FpT *a, FpT *result)
 {
