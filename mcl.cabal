@@ -70,6 +70,8 @@ Benchmark bench
                        groups
 
   ghc-options:         -Wall -threaded -rtsopts
+  if impl(ghc >= 8)
+    ghc-options:       -Wredundant-constraints
 
   type:                exitcode-stdio-1.0
   main-is:             Main.hs
@@ -87,6 +89,9 @@ test-suite tests
                        test-framework-quickcheck2
 
   ghc-options:         -Wall -threaded -rtsopts
+  if impl(ghc >= 8)
+    ghc-options:       -Wredundant-constraints
+
 
   type:                exitcode-stdio-1.0
   main-is:             Main.hs

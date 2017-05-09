@@ -12,7 +12,6 @@ module MCL.Internal.Utils
   , importInteger
   ) where
 
-import Control.DeepSeq
 import Data.Binary
 import Data.Binary.Get
 import Data.Binary.Put
