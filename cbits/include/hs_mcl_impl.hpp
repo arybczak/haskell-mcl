@@ -2,7 +2,7 @@
 #define HAVE_HS_MCL_IMPL
 
 #include "HsFFI.h"
-#include "misc.hpp"
+#include "hs_mcl_misc.hpp"
 
 namespace hs_mcl {
 namespace field_impl {

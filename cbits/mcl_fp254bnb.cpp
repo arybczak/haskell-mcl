@@ -1,5 +1,5 @@
 #include <mcl/bn256.hpp>
-#include "impl.hpp"
+#include "hs_mcl_impl.hpp"
 
 using namespace hs_mcl;
 using namespace mcl::bn256;

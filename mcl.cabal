@@ -1,5 +1,5 @@
 name:                mcl
-version:             1.0.0
+version:             1.0.1
 synopsis:            Bindings to mcl, a generic and fast pairing-based cryptography library
 description:         Base library: <https://github.com/herumi/mcl>
 license:             BSD3
@@ -55,6 +55,10 @@ library
   default-language:    Haskell2010
 
   cc-options:          -std=c++11 -Wall -Wextra
+
+  include-dirs:        cbits/include
+  install-includes:    cbits/include/hs_mcl_impl.hpp
+                       cbits/include/hs_mcl_misc.hpp
 
   c-sources:           cbits/mcl_fp254bnb.cpp
 
