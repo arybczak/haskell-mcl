@@ -68,6 +68,10 @@ mkG1
   -> Maybe G1
 mkG1 = I.mkG
 
+-- | Map an element of Fp to a curve point. Note: @mapToG1 . hashToFp@ does NOT
+-- yield generically secure hash function. For more details see page 3 of
+-- "Indifferentiable Hashing to Barreto-Naehrig Curves"
+-- (<https://www.di.ens.fr/~fouque/pub/latincrypt12.pdf>).
 {-# INLINE mapToG1 #-}
 mapToG1 :: Fp -> G1
 mapToG1 = I.mapToG

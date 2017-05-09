@@ -70,6 +70,7 @@ mkG2
   -> Maybe G2
 mkG2 = I.mkG
 
+-- | Map an element of Fp2 to a curve point.
 {-# INLINABLE mapToG2 #-}
 mapToG2 :: Fp2 -> G2
 mapToG2 = I.mapToG

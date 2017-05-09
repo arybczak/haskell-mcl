@@ -1,6 +1,7 @@
 name:                mcl
 version:             1.0.0
 synopsis:            Bindings to mcl, a generic and fast pairing-based cryptography library
+description:         Base library: https://github.com/herumi/mcl
 license:             BSD3
 license-file:        LICENSE
 author:              Andrzej Rybczak
@@ -13,6 +14,10 @@ cabal-version:       >=1.10
 custom-setup
   setup-depends:     base < 5,
                      Cabal
+
+source-repository head
+  type:              git
+  location:          https://github.com/arybczak/haskell-mcl
 
 library
   exposed-modules:     MCL.Curves.Fp254BNb
