@@ -3,8 +3,7 @@
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE UnliftedFFITypes #-}
 module MCL.Internal.Utils
-  ( Compressed(..)
-  , cintToBool
+  ( cintToBool
   , boolToCInt
   , putBytesFx
   , getBytesFx
@@ -26,9 +25,6 @@ import GHC.Exts
 import GHC.Integer.GMP.Internals
 
 #include <gmp.h>
-
-newtype Compressed g = Compressed { unCompressed :: g }
-  deriving (Eq, NFData, Show, Typeable)
 
 {-# INLINE cintToBool #-}
 cintToBool :: CInt -> Bool

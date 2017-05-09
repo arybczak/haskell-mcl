@@ -10,7 +10,6 @@ import Data.Group
 import Data.Maybe
 
 import MCL.Curves.Fp254BNb
-import MCL.Internal.Utils
 
 main :: IO ()
 main = defaultMain
@@ -26,7 +25,7 @@ main = defaultMain
     , bench "is_zero"       $ nf fp_isZero fp_a
     , bench "sqrt"          $ nf fp_squareRoot fp_a
     , bench "show"          $ nf show fp_a
-    , benchBinary "" fp_a
+    , benchBinary fp_a
     ]
   , bgroup "Fp2"
     [ benchFpArith fp2_a fp2_b
@@ -35,14 +34,14 @@ main = defaultMain
     , bench "is_zero"   $ nf fp_isZero fp_a
     , bench "sqrt"      $ nf fp2_squareRoot fp2_a
     , bench "show"      $ nf show fp2_a
-    , benchBinary "" fp2_a
+    , benchBinary fp2_a
     ]
   , bgroup "Fp12"
     [ benchFpArith fp12_a fp12_b
     , bench "eq"        $ nf (uncurry (==)) (fp12_a, fp12_b)
     , bench "is_zero"   $ nf fp12_isZero fp12_a
     , bench "show"      $ nf show fp12_a
-    , benchBinary "" fp12_a
+    , benchBinary fp12_a
     ]
   , bgroup "Fr"
     [ benchFpArith fr_a fr_b
@@ -55,7 +54,7 @@ main = defaultMain
     , bench "to_integer"    $ nf fromFr fr_a
     , bench "is_zero"       $ nf fr_isZero fr_a
     , bench "show"          $ nf show fr_a
-    , benchBinary "" fr_a
+    , benchBinary fr_a
     ]
   , bgroup "G1"
     [ benchGroupArith g1_powFr g1_p g1_q
@@ -65,8 +64,7 @@ main = defaultMain
     , bench "is_zero"   $ nf g1_isZero g1_p
     , bench "affine"    $ nf g1_affineCoords g1_p
     , bench "show"      $ nf show g1_p
-    , benchBinary "regular" g1_p
-    , benchBinary "compressed" $ Compressed g1_p
+    , benchBinary g1_p
     ]
   , bgroup "G2"
     [ benchGroupArith g2_powFr g2_p g2_q
@@ -76,8 +74,7 @@ main = defaultMain
     , bench "is_zero"   $ nf g2_isZero g2_p
     , bench "affine"    $ nf g2_affineCoords g2_p
     , bench "show"      $ nf show g2_p
-    , benchBinary "regular" g2_p
-    , benchBinary "compressed" $ Compressed g2_p
+    , benchBinary g2_p
     ]
   , bgroup "GT"
     [ bench "pow"        $ nf (uncurry pow) (gt_a, large_integer)
@@ -111,8 +108,8 @@ benchGroupArith fpow p q = bgroup "arith"
     ]
   ]
 
-benchBinary :: forall a. (Binary a, NFData a) => String -> a -> Benchmark
-benchBinary sub a = bgroup ("binary" ++ if null sub then "" else "/" ++ sub)
+benchBinary :: forall a. (Binary a, NFData a) => a -> Benchmark
+benchBinary a = bgroup "binary"
   [ bench "put" $ nf encode a
   , bench "get" $ nf (decode :: ByteString -> a) (encode a)
   ]

@@ -1,4 +1,3 @@
-{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE UnliftedFFITypes #-}
@@ -32,16 +31,12 @@ import qualified MCL.Internal.Prim as I
 data G1 = G1 { unG1 :: I.CC G1 }
 
 instance Binary G1 where
-  put = putCurvePoint g1_affineCoords put
-  get = getCurvePoint g1_zero mkG1
-
-instance Binary (Compressed G1) where
-  put (Compressed p) = putCurvePoint g1_affineCoords putY p
+  put = putCurvePoint g1_affineCoords putY
     where
       putY y = put . cintToBool . fromIntegral $ fromFp y .&. 1
 
-  get = getCurvePoint (Compressed g1_zero) $ \x y_lsb ->
-    fmap Compressed . mkG1 x =<< g1_getYfromX y_lsb x
+  get = getCurvePoint g1_zero $ \x y_lsb ->
+    mkG1 x =<< g1_getYfromX y_lsb x
 
 instance NFData G1 where
   rnf = (`seq` ())
