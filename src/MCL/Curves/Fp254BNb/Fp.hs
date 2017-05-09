@@ -55,8 +55,8 @@ instance Show Fp where
 mkFp :: Integer -> Fp
 mkFp = I.mkFp
 
--- | Hash arbitrary message to Fr by computing its SHA256 hash and treating its
--- first 253 bits as the value of Fr.
+-- | Hash arbitrary message to Fp by computing its SHA256 hash and treating its
+-- first 253 bits as the value of Fp.
 {-# INLINE hashToFp #-}
 hashToFp :: BS.ByteString -> Fp
 hashToFp = I.hashToFp

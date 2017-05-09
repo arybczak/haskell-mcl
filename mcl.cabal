@@ -71,3 +71,20 @@ Benchmark bench
 
   hs-source-dirs:      benchmark
   default-language:    Haskell2010
+
+test-suite tests
+  build-depends:       mcl,
+                       QuickCheck,
+                       base < 5,
+                       binary,
+                       groups,
+                       test-framework,
+                       test-framework-quickcheck2
+
+  ghc-options:         -Wall -threaded -rtsopts
+
+  type:                exitcode-stdio-1.0
+  main-is:             Main.hs
+
+  hs-source-dirs:      test
+  default-language:    Haskell2010
