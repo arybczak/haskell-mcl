@@ -11,7 +11,7 @@ template <typename FpT>
 inline void hash_to(const char *s, const size_t s_length, FpT *result)
 {
 	mem_util::init(result);
-	result->setMsg(s, s_length);
+	result->setHashOf(s, s_length);
 }
 
 template <typename FpT>
